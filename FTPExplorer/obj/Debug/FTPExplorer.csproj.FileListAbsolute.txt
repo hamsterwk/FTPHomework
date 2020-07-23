@@ -1,0 +1,10 @@
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe.config
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.pdb
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.csprojAssemblyReference.cache
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.FTPConnectForm.resources
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.Properties.Resources.resources
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.csproj.GenerateResource.cache
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.csproj.CoreCompileInputs.cache
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.exe
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.pdb
