@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace FTPExplorer
 {
-    public partial class Form1 : Form
+    public partial class FTPMainForm : Form
     {
-        public Form1()
+        public FTPMainForm()
         {
             InitializeComponent();
         }
@@ -22,6 +22,11 @@ namespace FTPExplorer
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e) {
+
+        }
+
+        private void FTPMainForm_Load(object sender, EventArgs e)
+        {
 
         }
     }

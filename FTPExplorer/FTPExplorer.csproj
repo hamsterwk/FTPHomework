@@ -46,11 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="FTPMainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="FTPMainForm.Designer.cs">
+      <DependentUpon>FTPMainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="FTPConnectForm.cs">
       <SubType>Form</SubType>
@@ -58,11 +58,12 @@
     <Compile Include="FTPConnectForm.Designer.cs">
       <DependentUpon>FTPConnectForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="FTPProperties.cs" />
+    <Compile Include="MyFTP.cs" />
+    <Compile Include="MyFTPResponse.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="FTPMainForm.resx">
+      <DependentUpon>FTPMainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FTPConnectForm.resx">
       <DependentUpon>FTPConnectForm.cs</DependentUpon>
