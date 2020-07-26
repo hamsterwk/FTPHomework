@@ -206,11 +206,11 @@ namespace FTPExplorer
         {
             SetRemoteNode(e.Node);
         }
-
+        //TODO:把删除给写了
         private void LocalDeleteBtn_Click(object sender, EventArgs e)
         {
             if (LocalNode == null) return;
-
+        
         }
 
         private void ConnectBtn_Click(object sender, EventArgs e)
@@ -242,6 +242,18 @@ namespace FTPExplorer
             AddLog($"FTP已连接到 {myFTP.Server}:{myFTP.Port}, 成功登录！");
             Text = $"极简FTP [{myFTP.Server}:{myFTP.Port}]";
             PreLoadRemoteTree();
+        }
+
+        private void uploadBtn_Click(object sender, EventArgs e){
+            throw new System.NotImplementedException();
+        }
+        //TODO:把重命名写了（7/27日完成）
+        private void LocalRenameBtn_Click(object sender, EventArgs e){
+            throw new System.NotImplementedException();
+        }
+        //TODO:把新建文件夹写了（7/27完成）
+        private void LocalNewFolderBtn_Click(object sender, EventArgs e){
+            throw new System.NotImplementedException();
         }
     }
 }

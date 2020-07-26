@@ -2,7 +2,6 @@ C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe
 C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe
 C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.pdb
 C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.csprojAssemblyReference.cache
-C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.FTPConnectForm.resources
 C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.Properties.Resources.resources
 C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.csproj.GenerateResource.cache
 C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.csproj.CoreCompileInputs.cache
@@ -17,3 +16,4 @@ D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.pdb
 D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe.config
 D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe
 D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.pdb
+C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.FTPMainForm.resources
