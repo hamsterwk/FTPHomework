@@ -52,21 +52,14 @@
     <Compile Include="FTPMainForm.Designer.cs">
       <DependentUpon>FTPMainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="FTPConnectForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FTPConnectForm.Designer.cs">
-      <DependentUpon>FTPConnectForm.cs</DependentUpon>
-    </Compile>
+    <Compile Include="ImageIndex.cs" />
     <Compile Include="MyFTP.cs" />
+    <Compile Include="MyFTPItem.cs" />
     <Compile Include="MyFTPResponse.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="FTPMainForm.resx">
       <DependentUpon>FTPMainForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="FTPConnectForm.resx">
-      <DependentUpon>FTPConnectForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -76,6 +69,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -89,6 +83,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\000.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\252.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

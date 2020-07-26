@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace FTPExplorer
 {
@@ -79,6 +80,8 @@ namespace FTPExplorer
 				//AddressFamily.InterNetworkV6表示此地址为IPv6类型
 				if (IpEntry.AddressList[i].AddressFamily == AddressFamily.InterNetwork)
 				{
+					string ip = "";
+					ip = IpEntry.AddressList[i].ToString();
 					return IpEntry.AddressList[i].ToString();
 				}
 			}
@@ -142,7 +145,7 @@ namespace FTPExplorer
 		//从字节流中读取一整行字符
 		private string GetLine()
 		{
-			string rtn;
+			string rtn = "";
 			while (BufferPool.IndexOf('\n') < 0) GetBuffer();
 			int idx = BufferPool.IndexOf('\n');
 			rtn = BufferPool.Substring(0, idx);
@@ -167,7 +170,6 @@ namespace FTPExplorer
 					rtn += buf;
 				}
 			}
-			return new MyFTPResponse(rtn);
 		}
 
 		/*
@@ -324,6 +326,15 @@ namespace FTPExplorer
 		 * 获取文件目录
 		*/
 
+		/*
+		 * 获取文件目录（返回列表）
+		 *  -r--r--r-- 1 ftp ftp         202752 Apr 16  2020 18级os设计讲稿.doc
+			-r--r--r-- 1 ftp ftp        2115458 May 22  2020 2018302110186-吴轲-操作系统实验 报告.docx
+			drwxr-xr-x 1 ftp ftp              0 Jul 24 23:00 619
+			drwxr-xr-x 1 ftp ftp              0 Jul 24 23:00 624
+			drwxr-xr-x 1 ftp ftp              0 Jul 24 23:00 723
+		*/
+
 		public string GetList()
 		{
 			byte[] bufs = new byte[1024];
@@ -358,5 +369,72 @@ namespace FTPExplorer
 			return fileList;
 		}
 
+		public List<MyFTPItem> GetFileList()
+		{
+			string fileList = GetList();
+			//fileList = Regex.Replace(fileList, " +", " ");
+			List<MyFTPItem> list = new List<MyFTPItem>();
+			foreach (string f in fileList.Split('\n'))
+			{
+				if (f.Length > 0 && !Regex.Match(f, "^total").Success)
+				{
+					string tmp = f.Substring(0, f.Length - 1);
+					MyFTPItem newItem = new MyFTPItem();
+					newItem.Name = tmp.Substring(49);
+					tmp = Regex.Replace(tmp, " +", " ");
+					string[] tmpList = tmp.Split(' ');
+					if ((f[0] != 'd') && (f.ToUpper().IndexOf("<DIR>") < 0))
+					{
+						newItem.Type = "file";
+					}
+					else
+					{
+						newItem.Type = "dir";
+					}
+					newItem.Size = long.Parse(tmpList[4]);
+					list.Add(newItem);
+				}
+			}
+			list.Sort();
+			return list;
+		}
+
+		public string GetWorkingDirectory()
+		{
+			// PWD - print working directory
+			Connect();
+			SendCommand("PWD");
+			myFTPResponse = GetFTPResponse();
+
+			if (myFTPResponse.Status != 257)
+			{
+				throw new Exception(myFTPResponse.Message);
+			}
+
+			string pwd;
+			try
+			{
+				pwd = myFTPResponse.Message.Substring(myFTPResponse.Message.IndexOf("\"", 0) + 1); //5;
+				pwd = pwd.Substring(0, pwd.LastIndexOf("\""));
+				pwd = pwd.Replace("\"\"", "\""); // directories with quotes in the name come out as "" from the server
+			}
+			catch (Exception ex)
+			{
+				throw new Exception("Uhandled PWD response: " + ex.Message);
+			}
+
+			return pwd;
+		}
+
+		public void ChangeDir(string path)
+		{
+			Connect();
+			this.SendCommand("CWD " + path);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 250)
+			{
+				throw new Exception(myFTPResponse.Message);
+			}
+		}
 	}
 }
