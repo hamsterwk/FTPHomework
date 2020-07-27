@@ -53,6 +53,7 @@
       <DependentUpon>FTPMainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ImageIndex.cs" />
+    <Compile Include="LocalTreeAfterEdit.cs" />
     <Compile Include="MyFTP.cs" />
     <Compile Include="MyFTPItem.cs" />
     <Compile Include="MyFTPResponse.cs" />

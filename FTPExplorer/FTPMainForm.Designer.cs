@@ -119,6 +119,7 @@
             this.LocalTree.SelectedImageIndex = 0;
             this.LocalTree.Size = new System.Drawing.Size(508, 228);
             this.LocalTree.TabIndex = 16;
+            this.LocalTree.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.LocalTree_AfterLabelEdit);
             this.LocalTree.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.LocalTree_AfterCollapse);
             this.LocalTree.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.LocalTree_BeforeExpand);
             this.LocalTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.LocalTree_AfterSelect);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -275,7 +275,6 @@ namespace FTPExplorer
         private void uploadBtn_Click(object sender, EventArgs e){
             throw new System.NotImplementedException();
         }
-        //TODO:把重命名写了（7/27日完成）
         private void LocalRenameBtn_Click(object sender, EventArgs e){
             LocalTree.LabelEdit = true;
             LocalTree.SelectedNode.BeginEdit();
