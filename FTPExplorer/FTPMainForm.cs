@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,10 +15,12 @@ namespace FTPExplorer
     {
         public MyFTP myFTP;
         private TreeNode LocalNode, RemoteNode;
+        private LocalTreeAfterEdit flag;
         public FTPMainForm()
         {
             myFTP = null;
             LocalNode = RemoteNode = null;
+            flag = LocalTreeAfterEdit.DefaultOptions;
             InitializeComponent();
             LocalPathLabel.Text = "";
             RemotePathLabel.Text = "";
@@ -210,7 +212,7 @@ namespace FTPExplorer
         private void LocalDeleteBtn_Click(object sender, EventArgs e)
         {
             if (LocalNode == null) return;
-        
+            
         }
 
         private void ConnectBtn_Click(object sender, EventArgs e)
@@ -249,11 +251,34 @@ namespace FTPExplorer
         }
         //TODO:把重命名写了（7/27日完成）
         private void LocalRenameBtn_Click(object sender, EventArgs e){
-            throw new System.NotImplementedException();
+            LocalTree.LabelEdit = true;
+            LocalTree.SelectedNode.BeginEdit();
+            flag = LocalTreeAfterEdit.Renamed;
         }
         //TODO:把新建文件夹写了（7/27完成）
         private void LocalNewFolderBtn_Click(object sender, EventArgs e){
             throw new System.NotImplementedException();
+        }
+        private void LocalTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
+        {
+            switch (flag){
+                case LocalTreeAfterEdit.Renamed:{
+                    string originalPath = e.Node.Name;
+                    string parentDie = e.Node.Parent.Name;
+                    string currentPath;
+                    if (Environment.GetLogicalDrives().Contains(parentDie)){
+                        currentPath = e.Node.Parent.Name + e.Label;
+                    }
+                    else{
+                        currentPath = $@"{e.Node.Parent.Name}\{e.Label}";
+                    }
+                    FileInfo originalInfo = new FileInfo(originalPath);
+                    originalInfo.MoveTo(currentPath);
+                    LocalPathLabel.Text = currentPath;
+                }
+                    break;
+
+            }
         }
     }
 }
