@@ -208,11 +208,37 @@ namespace FTPExplorer
         {
             SetRemoteNode(e.Node);
         }
-        //TODO:把删除给写了
+        public static void DeleteFolder(string dir)
+        {
+            if (System.IO.Directory.Exists(dir))
+            {
+                string[] fileSystemEntries = System.IO.Directory.GetFileSystemEntries(dir);
+                for (int i = 0; i < fileSystemEntries.Length; i++)
+                {
+                    string text = fileSystemEntries[i];
+                    if (System.IO.File.Exists(text))
+                    {
+                        System.IO.File.Delete(text);
+                    }
+                    else
+                    {
+                        DeleteFolder(text);
+                    }
+                }
+                System.IO.Directory.Delete(dir);
+            }
+        }
         private void LocalDeleteBtn_Click(object sender, EventArgs e)
         {
             if (LocalNode == null) return;
-            
+            string deleteDir = LocalTree.SelectedNode.Name;
+            LocalTree.SelectedNode.Remove();
+            if (Directory.Exists(deleteDir)){
+                DeleteFolder(deleteDir);
+            }
+            else{
+                File.Delete(deleteDir);
+            }
         }
 
         private void ConnectBtn_Click(object sender, EventArgs e)
@@ -255,29 +281,52 @@ namespace FTPExplorer
             LocalTree.SelectedNode.BeginEdit();
             flag = LocalTreeAfterEdit.Renamed;
         }
-        //TODO:把新建文件夹写了（7/27完成）
         private void LocalNewFolderBtn_Click(object sender, EventArgs e){
-            throw new System.NotImplementedException();
+            string newNodeDir = Path.Combine(Path.GetFullPath(LocalTree.SelectedNode.Name), "新建文件夹");
+            if (Directory.Exists(newNodeDir)){
+                AddLog($"文件夹已经存在！");
+                return;
+            }
+            TreeNode newNode = new TreeNode("新建文件夹");
+            flag = LocalTreeAfterEdit.Added;
+            LocalTree.SelectedNode.Nodes.Add(newNode);
+            newNode.Nodes.Add("");
+            newNode.Name = newNodeDir;
+            newNode.Tag = newNode.Name;
+            newNode.ImageIndex = ImageIndex.FolderClose;       //获取节点显示图片
+            newNode.SelectedImageIndex = ImageIndex.FolderOpen;
+            Directory.CreateDirectory(newNodeDir);
+            LocalPathLabel.Text = newNodeDir;
+            var oldSelected = LocalTree.SelectedNode;
+            //LocalTree.SelectedNode = oldSelected.Nodes.Find(newNode.Name,false)[0];
+            if (!LocalTree.SelectedNode.IsExpanded){
+                LocalTree.SelectedNode.Expand();
+            }
         }
-        private void LocalTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
-        {
+        private void LocalTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e){
+            string originalPath, parentDie, currentPath;
             switch (flag){
                 case LocalTreeAfterEdit.Renamed:{
-                    string originalPath = e.Node.Name;
-                    string parentDie = e.Node.Parent.Name;
-                    string currentPath;
+                    originalPath = Path.GetFullPath(e.Node.Name);
+                    parentDie = e.Node.Parent.Name;
                     if (Environment.GetLogicalDrives().Contains(parentDie)){
                         currentPath = e.Node.Parent.Name + e.Label;
                     }
                     else{
                         currentPath = $@"{e.Node.Parent.Name}\{e.Label}";
                     }
-                    FileInfo originalInfo = new FileInfo(originalPath);
-                    originalInfo.MoveTo(currentPath);
-                    LocalPathLabel.Text = currentPath;
+
+                    e.Node.Name = currentPath;
+                    if (!Directory.Exists(currentPath)){
+                        FileInfo originalInfo = new FileInfo(originalPath);
+                        originalInfo.MoveTo(currentPath);
+                        LocalPathLabel.Text = currentPath;
+                        LocalTree.LabelEdit = false;
+                    }
                 }
                     break;
-
+                default:
+                    break;
             }
         }
     }
