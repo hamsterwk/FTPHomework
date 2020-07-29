@@ -57,6 +57,7 @@
             this.RemoteRenameBtn = new System.Windows.Forms.Button();
             this.RemoteDeleteBtn = new System.Windows.Forms.Button();
             this.DownloadBtn = new System.Windows.Forms.Button();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.SuspendLayout();
             // 
             // uploadBtn
@@ -374,6 +375,7 @@
             this.DownloadBtn.TabIndex = 33;
             this.DownloadBtn.Text = "下载";
             this.DownloadBtn.UseVisualStyleBackColor = true;
+            this.DownloadBtn.Click += new System.EventHandler(this.DownloadBtn_Click);
             // 
             // FTPMainForm
             // 
@@ -445,6 +447,8 @@
         private System.Windows.Forms.Label UserWarning;
 
         #endregion
+
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }
 

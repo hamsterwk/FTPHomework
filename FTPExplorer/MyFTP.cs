@@ -22,10 +22,12 @@ namespace FTPExplorer
 		/*主套接字的声明部分*/
 		private Socket MainSock;
 		private IPEndPoint MainIPEndPoint;
-		private Encoding ecd;
+		public Encoding ecd;
 
+		/*数据操作相关*/
 		private Socket DataSock;
 		private IPEndPoint DataIPEndPoint;
+		private FileStream file;
 
 
 		private string BufferPool;//接受字符缓存池
@@ -44,6 +46,7 @@ namespace FTPExplorer
 
 			this.DataSock = null;
 			this.DataIPEndPoint = null;
+			this.file = null;
 
 			this.myFTPResponse = new MyFTPResponse();
 			this.BufferPool = "";
@@ -62,6 +65,7 @@ namespace FTPExplorer
 
 			this.DataSock = null;
 			this.DataIPEndPoint = null;
+			this.file = null;
 
 			this.myFTPResponse = new MyFTPResponse();
 			this.BufferPool = "";
@@ -105,7 +109,7 @@ namespace FTPExplorer
 		//向远程服务器发送命令
 		private void SendCommand(string command)
 		{
-			byte[] commandBytes = Encoding.UTF8.GetBytes((command + "\r\n").ToCharArray());
+			byte[] commandBytes = ecd.GetBytes((command + "\r\n").ToCharArray());
 			this.MainSock.Send(commandBytes);
 		}
 
@@ -390,7 +394,8 @@ namespace FTPExplorer
 			{
 				if (f.Length > 0 && !Regex.Match(f, "^total").Success)
 				{
-					string tmp = f.Substring(0, f.Length - 1);
+					
+					string tmp = Regex.Replace(f,"\r","");
 					MyFTPItem newItem = new MyFTPItem();
 					newItem.Name = tmp.Substring(49);
 					tmp = Regex.Replace(tmp, " +", " ");
@@ -439,6 +444,9 @@ namespace FTPExplorer
 			return pwd;
 		}
 
+		/**
+		 * 修改 删除 创建 重命名
+		 */
 		public void ChangeDir(string path)
 		{
 			Connect();
@@ -506,6 +514,194 @@ namespace FTPExplorer
 			if (myFTPResponse.Status != 250)
 			{
 				throw new Exception(myFTPResponse.Message);
+			}
+		}
+
+		/*
+		 * 下载部分的实现（已实现断点续传）
+		 * 首先需要搞清楚本地文件下载了多少，然后转告服务器
+		 * 利用RETR命令即可实现
+		 * 但是有可能在发起续传的时候，服务器端文件已经发生更新，那么此时必须重新开始传输
+		 * 因此需要比对本地文件的修改时间与远程的修改时间
+		 * 解决方法：将缓存文件命名为：<文件名>.tmp
+		 * 在文件开头插入时间戳
+		 */
+
+		//设置二进制模式
+		private void SetBinaryMode(bool mode)
+		{
+			if (mode)SendCommand("TYPE I");
+			else SendCommand("TYPE A");
+
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 200)
+			{
+				Fail(myFTPResponse);
+			}
+		}
+
+		public string GetDate(string fileName)
+		{//从远程服务器获取所需文件的日期
+			Connect();
+
+			SendCommand("MDTM " + fileName);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 213)
+			{
+				throw new Exception(myFTPResponse.Message);
+			}
+
+			return Regex.Replace(myFTPResponse.Message.Substring(4),"\r","");
+		}
+
+		//DownLoadFile("D:\\in.txt",string "in.txt")
+		public void DownLoadFile(string LocalDirName,string RemotefileName,int StartOffset=14)
+		{
+			//首先建立下载请求
+			Connect();
+			SetBinaryMode(true);
+			OpenDataSock();
+			file = new FileStream(LocalDirName, FileMode.Append);
+			SendCommand("REST " + (file.Length-StartOffset).ToString());
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 350)
+			{
+				CloseDataSock();
+				file = null;
+				throw new Exception(myFTPResponse.Message);
+			}
+
+			SendCommand("RETR " + RemotefileName);
+			myFTPResponse = GetFTPResponse();
+
+			if (myFTPResponse.Status != 125 && myFTPResponse.Status!=150)
+			{
+				file = null;
+				throw new Exception(myFTPResponse.Message);
+			}
+
+			//开始下载
+			byte[] bytes = new byte[4096];
+			long bytesGot;
+			while (true)
+			{
+				try
+				{
+					bytesGot = DataSock.Receive(bytes, bytes.Length, 0);
+					if (bytesGot <= 0)
+					{
+						CloseDataSock();
+						file.Close();
+						myFTPResponse = GetFTPResponse();
+						if(myFTPResponse.Status!=250&& myFTPResponse.Status != 226)
+						{
+							throw new Exception(myFTPResponse.Message);
+						}
+
+						SetBinaryMode(false);
+						return;
+					}
+					file.Write(bytes, 0, (int)bytesGot);
+				}
+				catch(Exception ex)
+				{
+					CloseDataSock();
+					if (file != null)
+					{
+						file.Close();
+						file = null;
+					}
+					GetFTPResponse();
+					SetBinaryMode(false);
+					throw (ex);
+				}
+			}
+		}
+
+		/*
+		 * 上传部分的实现（已实现断点续传）
+		 * 首先需要搞清楚本地文件上传了多少，然后转告服务器
+		 * 利用RETR命令即可实现
+		 * 但是有可能在发起续传的时候，服务器端文件已经发生更新，那么此时必须重新开始传输
+		 * 因此需要比对本地文件的修改时间与远程的修改时间
+		 * 解决方法：将缓存文件命名为：<文件名>.tmp
+		 * 在文件开头插入时间戳
+		 */
+
+		public long GetFileSize(string filename)
+		{//获取远程文件大小
+			Connect();
+			SendCommand("SIZE " + filename);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 213)
+			{
+				throw new Exception(myFTPResponse.Message);
+			}
+			return long.Parse(myFTPResponse.Message.Substring(4));
+		}
+
+		public void UploadFile(string LocalfileName, string RemotefileName,int StartOffset = 18)
+		{
+			//首先建立上传请求
+			Connect();
+			SetBinaryMode(true);
+			OpenDataSock();
+			//获取远程文件的大小
+			long sizeReceived;
+			SendCommand("SIZE " + RemotefileName);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 213)
+			{
+				if (myFTPResponse.Status == 550)
+				{
+					sizeReceived = 0;
+				}
+				else throw new Exception(myFTPResponse.Message);
+			}else sizeReceived = long.Parse(myFTPResponse.Message.Substring(4));
+
+			file = new FileStream(LocalfileName, FileMode.Open);
+			file.Seek(StartOffset + sizeReceived, SeekOrigin.Begin);
+
+			SendCommand("APPE " + RemotefileName);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 150&&myFTPResponse.Status!=125)
+			{
+				throw new Exception(myFTPResponse.Message);
+			}
+
+			byte[] buf = new byte[8192];
+			int bytes;
+
+			while (true)
+			{
+				try
+				{
+					bytes = file.Read(buf, 0, buf.Length);
+					DataSock.Send(buf, bytes, 0);
+
+					if (bytes <= 0)
+					{
+						file.Close();
+						file = null;
+						CloseDataSock();
+						myFTPResponse = GetFTPResponse();
+						if (myFTPResponse.Status != 250 && myFTPResponse.Status != 226)
+						{
+							throw new Exception(myFTPResponse.Message);
+						}
+
+						SetBinaryMode(false);
+						return;
+					}
+				}catch(Exception ex)
+				{
+					if(file!=null)file.Close();
+					file = null;
+					CloseDataSock();
+					GetFTPResponse();
+					throw new Exception(ex.Message);
+				}
+
 			}
 		}
 	}

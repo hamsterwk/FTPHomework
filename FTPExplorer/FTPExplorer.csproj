@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileReplace.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FileReplace.Designer.cs">
+      <DependentUpon>FileReplace.cs</DependentUpon>
+    </Compile>
     <Compile Include="FTPMainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,6 +71,9 @@
     <Compile Include="MyFTPResponse.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FileReplace.resx">
+      <DependentUpon>FileReplace.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FTPMainForm.resx">
       <DependentUpon>FTPMainForm.cs</DependentUpon>
     </EmbeddedResource>

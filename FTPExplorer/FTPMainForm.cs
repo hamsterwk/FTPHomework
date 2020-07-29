@@ -16,6 +16,7 @@ namespace FTPExplorer
         public MyFTP myFTP;
         private TreeNode LocalNode, RemoteNode;
         private LocalTreeAfterEdit flag;
+        private int allowRep;//是否允许替换？
         public FTPMainForm()
         {
             myFTP = null;
@@ -85,14 +86,46 @@ namespace FTPExplorer
             LocalNode = node;
             LocalPathLabel.Text = node.Name;
             //LocalTree.SelectedNode = node;
+            //node.Expand();
         }
 
         private void SetRemoteNode(TreeNode node)
         {
+            //if (node == null) return;
             RemoteNode = node;
+            if (node == null) return;
             RemotePathLabel.Text = node.Name;
+            //node.Expand();
             //RemoteTree.SelectedNode = node;
             //AddLog(RemoteNode.Name);
+        }
+
+        private void ReloadLocalNode(TreeNode node)
+        {
+            node.Nodes.Clear();
+            string path = node.Name;
+            int sz = 0;
+            foreach (string DirName in Directory.GetDirectories(path))
+            {
+                TreeNode sonNode = new TreeNode(new DirectoryInfo(DirName).Name);
+                sonNode.Name = new DirectoryInfo(DirName).FullName;               //完整目录
+                sonNode.Tag = sonNode.Name;
+                sonNode.ImageIndex = ImageIndex.FolderClose;       //获取节点显示图片
+                sonNode.SelectedImageIndex = ImageIndex.FolderOpen; //选择节点显示图片
+                node.Nodes.Add(sonNode);
+                sonNode.Nodes.Add("");
+                sz += 1;
+            }
+            foreach (string FileName in Directory.GetFiles(path))
+            {
+                TreeNode sonNode = new TreeNode(new DirectoryInfo(FileName).Name);
+                sonNode.Name = new DirectoryInfo(FileName).FullName;               //完整目录
+                sonNode.Tag = sonNode.Name;
+                sonNode.ImageIndex = ImageIndex.File;       //获取节点显示图片
+                sonNode.SelectedImageIndex = ImageIndex.File;
+                node.Nodes.Add(sonNode);
+                sz += 1;
+            }
         }
 
         private void LocalTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
@@ -142,6 +175,48 @@ namespace FTPExplorer
                 node.ImageIndex = ImageIndex.FolderClose;
             }
             SetLocalNode(node);
+        }
+
+        private void ReloadRemoteNode(TreeNode node)
+        {
+            AddLog($"正在获取{node.Name}的目录列表......");
+            if (myFTP.Connected() == false) myFTP.Connect();
+            node.Nodes.Clear();
+            int sz = 0;
+            string path = node.Name;
+            List<MyFTPItem> list = new List<MyFTPItem>();
+            try
+            {
+                myFTP.ChangeDir(node.Name);
+                list = myFTP.GetFileList();
+            }
+            catch (Exception ex)
+            {
+                AddLog(ex.Message, 1);
+                return;
+            }
+            foreach (MyFTPItem item in list)
+            {
+                TreeNode sonNode = new TreeNode(item.Name);
+                sonNode.Name = node.Name + item.Name;               //完整目录
+                sonNode.Tag = sonNode.Name;
+                if (item.Type == "dir")
+                {
+                    sonNode.Name = sonNode.Name + "/";
+                    sonNode.ImageIndex = ImageIndex.FolderClose;       //获取节点显示图片
+                    sonNode.SelectedImageIndex = ImageIndex.FolderOpen; //选择节点显示图片
+                    sonNode.Nodes.Add("");
+                }
+                else
+                {
+                    sonNode.ImageIndex = ImageIndex.File;       //获取节点显示图片
+                    sonNode.SelectedImageIndex = ImageIndex.File; //选择节点显示图片
+                }
+
+                node.Nodes.Add(sonNode);
+                sz += 1;
+            }
+            AddLog($"获取成功！共获取{sz}项。");
         }
 
         private void RemoteTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
@@ -281,9 +356,7 @@ namespace FTPExplorer
             PreLoadRemoteTree();
         }
 
-        private void uploadBtn_Click(object sender, EventArgs e){
-            throw new System.NotImplementedException();
-        }
+
         private void LocalRenameBtn_Click(object sender, EventArgs e){
             if (LocalTree.SelectedNode == null) return;
             LocalTree.SelectedNode.BeginEdit();
@@ -443,6 +516,315 @@ namespace FTPExplorer
                 AddLog(ex.Message);
             }
 
+        }
+
+        void DownloadFile(TreeNode node, TreeNode Lnode)
+        {
+            string newFileName = System.IO.Path.Combine(Lnode.Name, node.Text);
+            if (File.Exists(newFileName))
+            {//先默认覆盖重传
+                int opcode = allowRep;
+                if (opcode == 0)
+                {
+                    FileReplace fileReplace = new FileReplace(node.Text);
+                    fileReplace.ShowDialog();
+                    if (fileReplace.Flag) allowRep = fileReplace.Status;
+                    opcode = fileReplace.Status;
+                }
+                if (opcode == -1) return;
+                File.Delete(newFileName);
+            }
+            string tempFileName = Path.Combine(Lnode.Name, System.IO.Path.GetFileNameWithoutExtension(newFileName) + ".tmp");
+            FileStream tmpStream=null;
+            if (File.Exists(tempFileName))
+            {
+                try
+                {
+                    tmpStream = new FileStream(tempFileName, FileMode.Open);
+                    byte[] bufs = new byte[14];
+                    tmpStream.Read(bufs, 0, 14);
+                    string oldDate = myFTP.ecd.GetString(bufs, 0, 14);
+                    tmpStream.Close();
+                    string newDate = myFTP.GetDate(node.Name);
+                    if (oldDate != newDate)
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
+                {
+                    AddLog("缓存不可用，尝试重新下载：");
+                    tmpStream.Close();
+                    File.Delete(tempFileName);
+                }
+            }
+
+            //准备缓存文件，并开始下载
+            try
+            {
+                //重新生成缓存文件
+                if (!File.Exists(tempFileName))
+                {
+                    tmpStream = new FileStream(tempFileName, FileMode.Create);
+                    string newDate = myFTP.GetDate(node.Name);
+                    byte[] tmps = myFTP.ecd.GetBytes(newDate);
+                    //AddLog(tmps.Length.ToString());
+                    tmpStream.Write(myFTP.ecd.GetBytes(newDate), 0, tmps.Length);
+                    tmpStream.Close();
+                }
+                myFTP.DownLoadFile(tempFileName, node.Name);
+            }
+            catch (Exception ex)
+            {
+                tmpStream.Close();
+                AddLog(ex.Message);
+            }
+
+            //保存，并删除缓存
+            FileStream file = new FileStream(tempFileName, FileMode.Open);
+            byte[] tmp2 = new byte[8192];
+            file.Seek(14, SeekOrigin.Begin);
+            FileStream saveFile = new FileStream(newFileName, FileMode.Create);
+            while (true)
+            {
+                int BytesDone = file.Read(tmp2, 0, tmp2.Length);
+                if (BytesDone <= 0)
+                {
+                    file.Close();
+                    saveFile.Close();
+                    break;
+                }
+                saveFile.Write(tmp2, 0, BytesDone);
+            }
+            File.Delete(tempFileName);
+        }
+
+        void DownloadDir(TreeNode Rnode,TreeNode Lnode)
+        {//递归下载目录内的文件
+            if (Rnode.Text == "") return;
+            if (!IsDirectory(Rnode))
+            {
+                DownloadFile(Rnode, Lnode);
+                return;
+            }
+            ReloadRemoteNode(Rnode);
+            ReloadLocalNode(Lnode);
+            AddLog($"准备开始下载目录{Rnode.Name}中的内容...");
+            foreach (TreeNode node in Rnode.Nodes)
+            {
+                if (IsDirectory(node))
+                {
+                    string LocalDirName = System.IO.Path.Combine(Lnode.Name, node.Text);
+                    TreeNode newNode = new TreeNode();
+                    if (System.IO.Directory.Exists(LocalDirName) == false)
+                    {
+                        Directory.CreateDirectory(LocalDirName);
+                        newNode = new TreeNode(Rnode.Text);
+                        newNode.Name = LocalDirName;
+                        newNode.Tag = newNode.Name;
+                        Lnode.Nodes.Add(newNode);
+                    }
+                    else
+                    {
+
+                        foreach (TreeNode tmpnode in Lnode.Nodes)
+                        {
+                            if (tmpnode.Name == LocalDirName)
+                            {
+                                newNode = tmpnode;
+                                break;
+                            }
+                        }
+                    }
+                    DownloadDir(node, newNode);
+                }
+                else
+                {
+                    
+                    AddLog($"尝试下载文件{node.Name}...");
+                    //DownloadFile()
+                    DownloadFile(node, Lnode);
+                    AddLog($"{node.Name}下载完毕！...");
+                }
+            }
+            AddLog($"目录{Rnode.Name}中的内容下载完毕！");
+        }
+
+        private void DownloadBtn_Click(object sender, EventArgs e)
+        {
+            if (RemoteNode == null) return;
+            if (LocalNode == null) return;
+            allowRep = 0;
+            if (System.IO.File.Exists(LocalNode.Name))
+            {
+                DownloadDir(RemoteNode,LocalNode.Parent);
+            }
+            else
+            {
+                DownloadDir(RemoteNode, LocalNode);
+            }
+            ReloadLocalNode(LocalNode);
+            ReloadRemoteNode(RemoteNode);
+            return;
+        }
+
+        bool FindNode(TreeNode node,string name)
+        {
+            foreach(TreeNode tmp in node.Nodes) { if (tmp.Name == name) return true; }
+            return false;
+        }
+
+        void UploadFile(TreeNode node, TreeNode Rnode)
+        {
+            if (Path.GetExtension(node.Name) == "tmp") return;
+            string newFileName = Rnode.Name+node.Text;
+            //ReloadRemoteNode(Rnode);
+            if(FindNode(Rnode,newFileName))
+            {//先确认是否替换or跳过
+                int opcode = allowRep;
+                if (opcode == 0)
+                {
+                    FileReplace fileReplace = new FileReplace(node.Text);
+                    fileReplace.ShowDialog();
+                    if (fileReplace.Flag) allowRep = fileReplace.Status;
+                    opcode = fileReplace.Status;
+                }
+                if (opcode == -1) return;
+                myFTP.RemoveFile(newFileName);
+            }
+
+            string tempFileName = Path.Combine(node.Parent.Name, System.IO.Path.GetFileNameWithoutExtension(node.Name) + ".tmp");
+            string remoteTempFileName = Rnode.Name + Path.GetFileNameWithoutExtension(node.Text) + ".tmp";
+            FileStream tmpStream = null;
+            byte[] bufs = new byte[8192];
+
+            if (FindNode(Rnode, remoteTempFileName))
+            {
+                try
+                {
+                    tmpStream = new FileStream(tempFileName, FileMode.Open);
+                    tmpStream.Read(bufs, 0, 18);
+                    string oldDate = myFTP.ecd.GetString(bufs, 0, 18);
+                    tmpStream.Close();
+                    string newDate = myFTP.GetDate(remoteTempFileName);
+                    if (oldDate != newDate)
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch
+                {
+                    AddLog("缓存不可用，尝试重新上传：");
+                    if(tmpStream!=null)tmpStream.Close();
+                    File.Delete(tempFileName);
+                }
+            }
+
+            //准备缓存文件，并开始下载
+            FileStream newStream = null;
+            try
+            {
+                //重新生成缓存文件
+                if (!File.Exists(tempFileName))
+                {
+                    tmpStream = new FileStream(tempFileName, FileMode.Create);
+                    string newDate = File.GetLastWriteTime(node.Name).ToString();
+                    byte[] tmps = myFTP.ecd.GetBytes(newDate);
+                    //AddLog(tmps.Length.ToString());
+                    tmpStream.Write(myFTP.ecd.GetBytes(newDate), 0, tmps.Length);
+                    newStream = new FileStream(node.Name, FileMode.Open);
+                    while(true)
+                    {
+                        int bytes = newStream.Read(bufs, 0, bufs.Length);
+                        if (bytes <= 0)
+                        {
+                            tmpStream.Close();
+                            newStream.Close();
+                            break;
+                        }
+                        tmpStream.Write(bufs, 0, bytes);
+                    }
+                    tmpStream.Close();
+                }
+                myFTP.UploadFile(tempFileName, remoteTempFileName);
+            }
+            catch (Exception ex)
+            {
+                newStream.Close();
+                tmpStream.Close();
+                AddLog(ex.Message);
+            }
+
+            //远程重命名，并删除缓存
+            myFTP.RenameDir(remoteTempFileName, newFileName);
+            File.Delete(tempFileName);
+        }
+
+        void UploadDir(TreeNode Lnode,TreeNode Rnode)
+        {//递归上传目录内的文件
+            if (Rnode.Text == "") return;
+            if (File.Exists(Lnode.Name))
+            {
+                UploadFile(Lnode,Rnode);
+                return;
+            }
+            ReloadLocalNode(Lnode);
+            ReloadRemoteNode(Rnode);
+            AddLog($"准备开始上传目录{Lnode.Name}中的内容...");
+            foreach (TreeNode node in Lnode.Nodes)
+            {
+                if (Directory.Exists(node.Name))
+                {
+                    string RemoteDirName = Rnode.Name + node.Text+'/';
+                    TreeNode newNode = null;
+                    foreach (TreeNode tmpnode in Rnode.Nodes)
+                    {
+                        if (tmpnode.Name == RemoteDirName)
+                        {
+                            newNode = tmpnode;
+                            break;
+                        }
+                    }
+                    if (newNode == null)
+                    {
+                        myFTP.MakeDir(RemoteDirName);
+                        newNode = new TreeNode(node.Text);
+                        newNode.Name = RemoteDirName;
+                        newNode.Tag = newNode.Tag;
+                        newNode.Nodes.Add("");
+                        Rnode.Nodes.Add(newNode);
+                    }
+                    UploadDir(node, newNode);
+                }
+                else
+                {
+
+                    AddLog($"尝试上传文件{node.Name}...");
+                    //DownloadFile()
+                    UploadFile(node,Rnode);
+                    AddLog($"{node.Name}上传完毕！...");
+                }
+            }
+            ReloadRemoteNode(Rnode);
+            AddLog($"目录{Rnode.Name}中的内容上传完毕！");
+        }
+
+        private void uploadBtn_Click(object sender, EventArgs e)
+        {
+            if (RemoteNode == null) return;
+            if (LocalNode == null) return;
+            allowRep = 0;
+            if (!IsDirectory(RemoteNode))
+            {
+                UploadDir(LocalNode,RemoteNode.Parent);
+            }
+            else
+            {
+                UploadDir(LocalNode, RemoteNode);
+            }
+            ReloadRemoteNode(RemoteNode);
+            ReloadLocalNode(LocalNode);
+            return;
         }
 
         private void LocalTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e){
