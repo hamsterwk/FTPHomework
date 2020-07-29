@@ -61,7 +61,7 @@
             // 
             // uploadBtn
             // 
-            this.uploadBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.uploadBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.uploadBtn.Location = new System.Drawing.Point(55, 359);
             this.uploadBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.uploadBtn.Name = "uploadBtn";
@@ -75,7 +75,7 @@
             // 
             this.logBox.FormattingEnabled = true;
             this.logBox.HorizontalScrollbar = true;
-            this.logBox.ItemHeight = 18;
+            this.logBox.ItemHeight = 15;
             this.logBox.Location = new System.Drawing.Point(55, 421);
             this.logBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.logBox.Name = "logBox";
@@ -85,10 +85,10 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.label3.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label3.Location = new System.Drawing.Point(52, 87);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(82, 24);
+            this.label3.Size = new System.Drawing.Size(69, 20);
             this.label3.TabIndex = 8;
             this.label3.Text = "本地路径";
             // 
@@ -97,7 +97,7 @@
             this.LocalPathLabel.AutoSize = true;
             this.LocalPathLabel.Location = new System.Drawing.Point(127, 90);
             this.LocalPathLabel.Name = "LocalPathLabel";
-            this.LocalPathLabel.Size = new System.Drawing.Size(35, 18);
+            this.LocalPathLabel.Size = new System.Drawing.Size(31, 15);
             this.LocalPathLabel.TabIndex = 9;
             this.LocalPathLabel.Text = "123";
             // 
@@ -106,7 +106,7 @@
             this.RemotePathLabel.AutoSize = true;
             this.RemotePathLabel.Location = new System.Drawing.Point(698, 90);
             this.RemotePathLabel.Name = "RemotePathLabel";
-            this.RemotePathLabel.Size = new System.Drawing.Size(35, 18);
+            this.RemotePathLabel.Size = new System.Drawing.Size(31, 15);
             this.RemotePathLabel.TabIndex = 14;
             this.RemotePathLabel.Text = "123";
             // 
@@ -114,6 +114,7 @@
             // 
             this.LocalTree.ImageIndex = 0;
             this.LocalTree.ImageList = this.imageList;
+            this.LocalTree.LabelEdit = true;
             this.LocalTree.Location = new System.Drawing.Point(55, 110);
             this.LocalTree.Name = "LocalTree";
             this.LocalTree.SelectedImageIndex = 0;
@@ -126,7 +127,7 @@
             // 
             // imageList
             // 
-            this.imageList.ImageStream = ((System.Windows.Forms.ImageListStreamer) (resources.GetObject("imageList.ImageStream")));
+            this.imageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList.ImageStream")));
             this.imageList.TransparentColor = System.Drawing.Color.Transparent;
             this.imageList.Images.SetKeyName(0, "Drive.ico");
             this.imageList.Images.SetKeyName(1, "FolderClose.ico");
@@ -137,11 +138,13 @@
             // 
             this.RemoteTree.ImageIndex = 0;
             this.RemoteTree.ImageList = this.imageList;
+            this.RemoteTree.LabelEdit = true;
             this.RemoteTree.Location = new System.Drawing.Point(627, 110);
             this.RemoteTree.Name = "RemoteTree";
             this.RemoteTree.SelectedImageIndex = 0;
             this.RemoteTree.Size = new System.Drawing.Size(510, 228);
             this.RemoteTree.TabIndex = 17;
+            this.RemoteTree.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.RemoteTree_AfterLabelEdit);
             this.RemoteTree.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.RemoteTree_AfterCollapse);
             this.RemoteTree.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.RemoteTree_BeforeExpand);
             this.RemoteTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.RemoteTree_AfterSelect);
@@ -149,10 +152,10 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.label2.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label2.Location = new System.Drawing.Point(623, 87);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(82, 24);
+            this.label2.Size = new System.Drawing.Size(69, 20);
             this.label2.TabIndex = 18;
             this.label2.Text = "远程路径";
             // 
@@ -163,7 +166,7 @@
             this.label1.Font = new System.Drawing.Font("微软雅黑", 12F);
             this.label1.Location = new System.Drawing.Point(51, 32);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(110, 31);
+            this.label1.Size = new System.Drawing.Size(91, 27);
             this.label1.TabIndex = 0;
             this.label1.Text = "FTP地址:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -174,7 +177,7 @@
             this.ServerBox.Font = new System.Drawing.Font("微软雅黑", 12F);
             this.ServerBox.Location = new System.Drawing.Point(139, 29);
             this.ServerBox.Name = "ServerBox";
-            this.ServerBox.Size = new System.Drawing.Size(194, 39);
+            this.ServerBox.Size = new System.Drawing.Size(194, 34);
             this.ServerBox.TabIndex = 1;
             this.ServerBox.Text = "127.0.0.1";
             // 
@@ -184,8 +187,9 @@
             this.UserNameBox.Font = new System.Drawing.Font("微软雅黑", 12F);
             this.UserNameBox.Location = new System.Drawing.Point(422, 29);
             this.UserNameBox.Name = "UserNameBox";
-            this.UserNameBox.Size = new System.Drawing.Size(194, 39);
+            this.UserNameBox.Size = new System.Drawing.Size(194, 34);
             this.UserNameBox.TabIndex = 21;
+            this.UserNameBox.Text = "HamsterwFTP";
             // 
             // label4
             // 
@@ -194,7 +198,7 @@
             this.label4.Font = new System.Drawing.Font("微软雅黑", 12F);
             this.label4.Location = new System.Drawing.Point(339, 32);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(92, 31);
+            this.label4.Size = new System.Drawing.Size(77, 27);
             this.label4.TabIndex = 20;
             this.label4.Text = "用户名:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -206,8 +210,9 @@
             this.PwdBox.Location = new System.Drawing.Point(685, 29);
             this.PwdBox.Name = "PwdBox";
             this.PwdBox.PasswordChar = '*';
-            this.PwdBox.Size = new System.Drawing.Size(148, 39);
+            this.PwdBox.Size = new System.Drawing.Size(148, 34);
             this.PwdBox.TabIndex = 23;
+            this.PwdBox.Text = "25690466Hamster";
             // 
             // label5
             // 
@@ -216,7 +221,7 @@
             this.label5.Font = new System.Drawing.Font("微软雅黑", 12F);
             this.label5.Location = new System.Drawing.Point(622, 32);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(68, 31);
+            this.label5.Size = new System.Drawing.Size(57, 27);
             this.label5.TabIndex = 22;
             this.label5.Text = "密码:";
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -227,7 +232,7 @@
             this.PortBox.Font = new System.Drawing.Font("微软雅黑", 12F);
             this.PortBox.Location = new System.Drawing.Point(902, 29);
             this.PortBox.Name = "PortBox";
-            this.PortBox.Size = new System.Drawing.Size(58, 39);
+            this.PortBox.Size = new System.Drawing.Size(58, 34);
             this.PortBox.TabIndex = 25;
             this.PortBox.Text = "21";
             // 
@@ -238,7 +243,7 @@
             this.PortBoxLabel.Font = new System.Drawing.Font("微软雅黑", 12F);
             this.PortBoxLabel.Location = new System.Drawing.Point(839, 32);
             this.PortBoxLabel.Name = "PortBoxLabel";
-            this.PortBoxLabel.Size = new System.Drawing.Size(68, 31);
+            this.PortBoxLabel.Size = new System.Drawing.Size(57, 27);
             this.PortBoxLabel.TabIndex = 24;
             this.PortBoxLabel.Text = "端口:";
             this.PortBoxLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -260,7 +265,7 @@
             this.ServerWarning.ForeColor = System.Drawing.Color.Red;
             this.ServerWarning.Location = new System.Drawing.Point(136, 66);
             this.ServerWarning.Name = "ServerWarning";
-            this.ServerWarning.Size = new System.Drawing.Size(152, 18);
+            this.ServerWarning.Size = new System.Drawing.Size(127, 15);
             this.ServerWarning.TabIndex = 27;
             this.ServerWarning.Text = "服务器地址非法！";
             this.ServerWarning.Visible = false;
@@ -271,7 +276,7 @@
             this.UserWarning.ForeColor = System.Drawing.Color.Red;
             this.UserWarning.Location = new System.Drawing.Point(419, 66);
             this.UserWarning.Name = "UserWarning";
-            this.UserWarning.Size = new System.Drawing.Size(152, 18);
+            this.UserWarning.Size = new System.Drawing.Size(127, 15);
             this.UserWarning.TabIndex = 28;
             this.UserWarning.Text = "用户名不能为空！";
             this.UserWarning.Visible = false;
@@ -282,14 +287,14 @@
             this.PortWarning.ForeColor = System.Drawing.Color.Red;
             this.PortWarning.Location = new System.Drawing.Point(841, 66);
             this.PortWarning.Name = "PortWarning";
-            this.PortWarning.Size = new System.Drawing.Size(116, 18);
+            this.PortWarning.Size = new System.Drawing.Size(97, 15);
             this.PortWarning.TabIndex = 29;
             this.PortWarning.Text = "端口号非法！";
             this.PortWarning.Visible = false;
             // 
             // LocalDeleteBtn
             // 
-            this.LocalDeleteBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.LocalDeleteBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.LocalDeleteBtn.Location = new System.Drawing.Point(182, 359);
             this.LocalDeleteBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.LocalDeleteBtn.Name = "LocalDeleteBtn";
@@ -301,7 +306,7 @@
             // 
             // LocalRenameBtn
             // 
-            this.LocalRenameBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.LocalRenameBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.LocalRenameBtn.Location = new System.Drawing.Point(309, 359);
             this.LocalRenameBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.LocalRenameBtn.Name = "LocalRenameBtn";
@@ -313,7 +318,7 @@
             // 
             // LocalNewFolderBtn
             // 
-            this.LocalNewFolderBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.LocalNewFolderBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.LocalNewFolderBtn.Location = new System.Drawing.Point(436, 359);
             this.LocalNewFolderBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.LocalNewFolderBtn.Name = "LocalNewFolderBtn";
@@ -325,7 +330,7 @@
             // 
             // RemoteNewFolderBtn
             // 
-            this.RemoteNewFolderBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.RemoteNewFolderBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.RemoteNewFolderBtn.Location = new System.Drawing.Point(1008, 359);
             this.RemoteNewFolderBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.RemoteNewFolderBtn.Name = "RemoteNewFolderBtn";
@@ -333,10 +338,11 @@
             this.RemoteNewFolderBtn.TabIndex = 36;
             this.RemoteNewFolderBtn.Text = "新建文件夹";
             this.RemoteNewFolderBtn.UseVisualStyleBackColor = true;
+            this.RemoteNewFolderBtn.Click += new System.EventHandler(this.RemoteNewFolderBtn_Click);
             // 
             // RemoteRenameBtn
             // 
-            this.RemoteRenameBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.RemoteRenameBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.RemoteRenameBtn.Location = new System.Drawing.Point(881, 359);
             this.RemoteRenameBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.RemoteRenameBtn.Name = "RemoteRenameBtn";
@@ -344,10 +350,11 @@
             this.RemoteRenameBtn.TabIndex = 35;
             this.RemoteRenameBtn.Text = "重命名";
             this.RemoteRenameBtn.UseVisualStyleBackColor = true;
+            this.RemoteRenameBtn.Click += new System.EventHandler(this.RemoteRenameBtn_Click);
             // 
             // RemoteDeleteBtn
             // 
-            this.RemoteDeleteBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.RemoteDeleteBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.RemoteDeleteBtn.Location = new System.Drawing.Point(754, 359);
             this.RemoteDeleteBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.RemoteDeleteBtn.Name = "RemoteDeleteBtn";
@@ -355,10 +362,11 @@
             this.RemoteDeleteBtn.TabIndex = 34;
             this.RemoteDeleteBtn.Text = "删除";
             this.RemoteDeleteBtn.UseVisualStyleBackColor = true;
+            this.RemoteDeleteBtn.Click += new System.EventHandler(this.RemoteDeleteBtn_Click);
             // 
             // DownloadBtn
             // 
-            this.DownloadBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (134)));
+            this.DownloadBtn.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.DownloadBtn.Location = new System.Drawing.Point(627, 359);
             this.DownloadBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.DownloadBtn.Name = "DownloadBtn";
@@ -404,6 +412,7 @@
             this.Load += new System.EventHandler(this.FTPMainForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
 
         private System.Windows.Forms.Button ConnectBtn;

@@ -337,7 +337,8 @@ namespace FTPExplorer
 
 		public string GetList()
 		{
-			byte[] bufs = new byte[1024];
+			byte[] Recbufs = new byte[1024];
+			byte[] bufs = new byte[1030];
 			int receiveBytes;
 			string fileList = "";
 			ArrayList list = new ArrayList();
@@ -351,11 +352,21 @@ namespace FTPExplorer
 			{
 				Fail(myFTPResponse);
 			}
-
+			int tmp = 0;
 			while (DataSock.Available > 0)
 			{
-				receiveBytes = DataSock.Receive(bufs, bufs.Length, 0);
-				fileList += ecd.GetString(bufs, 0, receiveBytes);
+				receiveBytes = DataSock.Receive(Recbufs, Recbufs.Length, 0);
+				for (int i = 0; i < receiveBytes; i++) bufs[i + tmp] = Recbufs[i];
+				tmp = 0;
+				string tmpList = ecd.GetString(bufs, 0, receiveBytes);
+				
+				while (tmpList[tmpList.Length - 1] == 65533)
+				{
+					tmp++;
+					tmpList = ecd.GetString(bufs, 0, receiveBytes-tmp);
+				}
+				for (int i = 0; i < tmp; i++) bufs[i] = Recbufs[receiveBytes - tmp + i];
+				fileList += tmpList;
 				System.Threading.Thread.Sleep(50);
 			}
 
@@ -366,6 +377,7 @@ namespace FTPExplorer
 				Fail(myFTPResponse);
 			}
 
+			CloseConnect();
 			return fileList;
 		}
 
@@ -420,9 +432,10 @@ namespace FTPExplorer
 			}
 			catch (Exception ex)
 			{
+				CloseConnect();
 				throw new Exception("Uhandled PWD response: " + ex.Message);
 			}
-
+			CloseConnect();
 			return pwd;
 		}
 
@@ -430,6 +443,65 @@ namespace FTPExplorer
 		{
 			Connect();
 			this.SendCommand("CWD " + path);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 250)
+			{
+				throw new Exception(myFTPResponse.Message);
+			}
+
+		}
+
+		public void RenameDir(string oldName,string newName)
+		{
+			Connect();
+			SendCommand("RNFR " + oldName);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 350)
+			{
+				CloseConnect();
+				throw new Exception(myFTPResponse.Message);
+			}
+			SendCommand("RNTO " + newName);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 250)
+			{
+
+				throw new Exception(myFTPResponse.Message);
+			}
+
+		}
+
+		public void RemoveDir(string dir)
+		{
+			Connect();
+			SendCommand("RMD " + dir);
+			myFTPResponse = GetFTPResponse();
+			if (myFTPResponse.Status != 250)
+			{
+				throw new Exception(myFTPResponse.Message);
+			}
+		}
+
+		public void MakeDir(string dir)
+		{
+			Connect();
+			this.SendCommand("MKD " + dir);
+			myFTPResponse = GetFTPResponse();
+
+			switch (myFTPResponse.Status)
+			{
+				case 257:
+				case 250:
+					break;
+				default:
+					throw new Exception(myFTPResponse.Message);
+			}
+		}
+
+		public void RemoveFile(string fileName)
+		{
+			Connect();
+			SendCommand("DELE " + fileName);
 			myFTPResponse = GetFTPResponse();
 			if (myFTPResponse.Status != 250)
 			{

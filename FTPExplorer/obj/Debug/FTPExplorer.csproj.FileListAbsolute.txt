@@ -17,3 +17,4 @@ D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe.config
 D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.exe
 D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\bin\Debug\FTPExplorer.pdb
 C:\Users\OkitaSan\projects\FTP\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.FTPMainForm.resources
+D:\prog C#\FTPHomework\FTPHomework\FTPExplorer\obj\Debug\FTPExplorer.InputForm.resources

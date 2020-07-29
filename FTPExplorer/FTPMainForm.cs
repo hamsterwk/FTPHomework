@@ -70,6 +70,10 @@ namespace FTPExplorer
             logBox.TopIndex = this.logBox.Items.Count - (int)(this.logBox.Height / this.logBox.ItemHeight);
         }
 
+        private bool IsDirectory(TreeNode node)
+        {
+            return node.Name[node.Name.Length-1]=='/';
+        }
 
         private void FTPMainForm_Load(object sender, EventArgs e)
         {
@@ -80,12 +84,15 @@ namespace FTPExplorer
         {
             LocalNode = node;
             LocalPathLabel.Text = node.Name;
+            //LocalTree.SelectedNode = node;
         }
 
         private void SetRemoteNode(TreeNode node)
         {
             RemoteNode = node;
             RemotePathLabel.Text = node.Name;
+            //RemoteTree.SelectedNode = node;
+            //AddLog(RemoteNode.Name);
         }
 
         private void LocalTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
@@ -123,6 +130,7 @@ namespace FTPExplorer
             {
                 node.ImageIndex = ImageIndex.FolderClose;
             }
+            LocalTree.SelectedNode = node;
             SetLocalNode(node);
         }
 
@@ -185,6 +193,7 @@ namespace FTPExplorer
                 node.ImageIndex = ImageIndex.FolderClose;
             }
             AddLog($"获取成功！共获取{sz}项。");
+            RemoteTree.SelectedNode = node;
             SetRemoteNode(node);
         }
 
@@ -276,17 +285,22 @@ namespace FTPExplorer
             throw new System.NotImplementedException();
         }
         private void LocalRenameBtn_Click(object sender, EventArgs e){
-            LocalTree.LabelEdit = true;
+            if (LocalTree.SelectedNode == null) return;
             LocalTree.SelectedNode.BeginEdit();
             flag = LocalTreeAfterEdit.Renamed;
         }
         private void LocalNewFolderBtn_Click(object sender, EventArgs e){
-            string newNodeDir = Path.Combine(Path.GetFullPath(LocalTree.SelectedNode.Name), "新建文件夹");
+            if (LocalNode == null) return;
+            InputForm inputForm = new InputForm("请输入文件夹名", "文件夹名非法！");
+            inputForm.ShowDialog();
+            if (inputForm.DialogResult != DialogResult.OK) return;
+            string newDirName = inputForm.Response;
+            string newNodeDir = Path.Combine(Path.GetFullPath(LocalTree.SelectedNode.Name), newDirName);
             if (Directory.Exists(newNodeDir)){
                 AddLog($"文件夹已经存在！");
                 return;
             }
-            TreeNode newNode = new TreeNode("新建文件夹");
+            TreeNode newNode = new TreeNode(newDirName);
             flag = LocalTreeAfterEdit.Added;
             LocalTree.SelectedNode.Nodes.Add(newNode);
             newNode.Nodes.Add("");
@@ -302,6 +316,135 @@ namespace FTPExplorer
                 LocalTree.SelectedNode.Expand();
             }
         }
+
+        private void RemoteRenameBtn_Click(object sender, EventArgs e)
+        {
+            if (RemoteNode == null)
+            {
+                AddLog("未选中任何文件/文件夹");
+                return;
+            }
+            if (RemoteNode.Parent == null) return;
+            RemoteNode.BeginEdit();
+        }
+
+        private void RemoteTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
+        {
+            string oldName = e.Node.Text;
+            string newName = e.Label;
+            string newPath = e.Node.Parent.Name + newName;
+            string oldPath = e.Node.Parent.Name + oldName;
+            AddLog($"正准备将{oldPath}重命名为{newPath}...");
+            try
+            {
+                AddLog($"切换目录至{RemoteNode.Parent.Name}...");
+                myFTP.ChangeDir(RemoteNode.Parent.Name);
+                AddLog($"正在请求重命名操作...");
+                myFTP.RenameDir(oldName, newName);
+                RemoteNode.Text = newName;
+                if (IsDirectory(RemoteNode))
+                {
+                    myFTP.ChangeDir(newPath);
+                    AddLog($"切换目录至{newPath}...");
+                }
+            }
+            catch (Exception ex)
+            {
+                e.CancelEdit = true;
+                RemoteTree.SelectedNode = null;
+                AddLog(ex.Message);
+                return;
+            }
+            AddLog("重命名成功！");
+        }
+
+        private void RemoveNode(TreeNode node)
+        {
+            if (node.Text == "")
+            {
+                node.Remove();
+                return;
+            }
+            try
+            {
+                if (IsDirectory(node))
+                {
+                    myFTP.ChangeDir(node.Name);
+                    node.Expand();
+                    while (node.Nodes.Count > 0)
+                    {
+                        RemoveNode(node.Nodes[0]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AddLog(ex.Message);
+                return;
+            }
+
+
+            AddLog($"正准备删除{node.Text}...");
+            try
+            {
+                myFTP.ChangeDir(node.Parent.Name);
+                if (IsDirectory(node)) myFTP.RemoveDir(node.Text);
+                else myFTP.RemoveFile(node.Text);
+            }
+            catch (Exception ex)
+            {
+                AddLog(ex.Message);
+                return;
+            }
+            node.Remove();
+            AddLog($"删除成功！");
+        }
+
+        private void RemoteDeleteBtn_Click(object sender, EventArgs e)
+        {
+            if (RemoteTree.SelectedNode == null||RemoteNode.Parent==null) return;
+
+            RemoveNode(RemoteNode);
+        }
+
+        private void RemoteNewFolderBtn_Click(object sender, EventArgs e)
+        {
+            if (RemoteTree.SelectedNode == null) return;
+            InputForm inputForm = new InputForm("请输入新目录名：","文件夹名输入非法！");
+            inputForm.ShowDialog();
+            if (inputForm.DialogResult == DialogResult.Cancel)
+            {
+                return;
+            }
+            string NewFolderName = inputForm.Response;
+            TreeNode ParentNode = RemoteNode;
+            if (IsDirectory(RemoteNode) == false)
+            {
+                ParentNode = ParentNode.Parent;
+            }
+            try
+            {
+                AddLog($"正在创建目录 {NewFolderName}");
+                myFTP.ChangeDir(ParentNode.Name);
+                myFTP.MakeDir(NewFolderName);
+                AddLog($"{NewFolderName}创建成功！");
+                TreeNode node = new TreeNode(NewFolderName);
+                node.Name = ParentNode.Name + NewFolderName + '/';
+                node.Tag = node.Name;
+                node.SelectedImageIndex = ImageIndex.FolderOpen;
+                node.ImageIndex = ImageIndex.FolderClose;
+                node.Nodes.Add("");
+                ParentNode.Nodes.Add(node);
+                ParentNode.Collapse();
+                ParentNode.Expand();
+            }
+            catch(Exception ex)
+            {
+                AddLog(ex.Message);
+            }
+
+        }
+
         private void LocalTree_AfterLabelEdit(object sender, NodeLabelEditEventArgs e){
             string originalPath, parentDie, currentPath;
             switch (flag){
